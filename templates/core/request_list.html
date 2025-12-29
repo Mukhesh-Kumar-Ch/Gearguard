@@ -1,0 +1,70 @@
+{% extends "core/base.html" %}
+{% block title %}Requests - GearGuard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Maintenance Requests</h1>
+
+<table class="table table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Subject</th>
+            <th>Equipment</th>
+            <th>Tech</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for req in requests %} 
+        <tr onclick="window.location.href='{% url "request_detail" req.id %}' " style="cursor:pointer;">
+            <td class="fw-semibold">
+                {{ req.subject }}
+                {% if req.scheduled_date and req.scheduled_date < today and req.state != "repaired" %}
+                    <span class="badge bg-danger ms-1">Overdue</span>
+                {% endif %}
+            </td>
+
+            <td>{{ req.equipment.name }}</td>
+
+            <td>
+                {% if req.assigned_technician %}
+                    <span class="badge bg-info text-dark">
+                        {{ req.assigned_technician.username|slice:":2"|upper }}
+                    </span>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+
+            <td>
+                {% if req.request_type == "corrective" %}
+                    <span class="badge bg-warning text-dark">Corrective</span>
+                {% else %}
+                    <span class="badge bg-primary">Preventive</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if req.state == "new" %}
+                    <span class="badge bg-primary">New</span>
+                {% elif req.state == "in_progress" %}
+                    <span class="badge bg-warning text-dark">In Progress</span>
+                {% elif req.state == "repaired" %}
+                    <span class="badge bg-success">Repaired</span>
+                {% else %}
+                    <span class="badge bg-danger">Scrap</span>
+                {% endif %}
+            </td>
+
+            <td>{{ req.created_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center text-muted py-4"><em>No requests found.</em></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

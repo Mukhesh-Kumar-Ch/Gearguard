@@ -1,0 +1,41 @@
+{% extends "core/base.html" %}
+{% block title %}Calendar - GearGuard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Preventive Maintenance Calendar</h1>
+
+<div id="calendar"></div>
+
+<!-- FullCalendar Assets -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        themeSystem: "bootstrap5",
+
+        events: '/calendar/events/',   // pulling preventive events from backend
+
+        dateClick(info) {
+            // user wants to schedule new preventive maintenance on selected date
+            window.location.href = `/requests/new/?scheduled_date=${info.dateStr}&request_type=preventive`;
+        },
+
+        eventClick(info) {
+            info.jsEvent.preventDefault(); // prevent navigation override
+
+            if (info.event.url) {
+                // go to maintenance request detail page
+                window.location.href = info.event.url;
+            }
+        }
+    });
+
+    calendar.render();
+});
+</script>
+{% endblock %}

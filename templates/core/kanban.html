@@ -1,0 +1,79 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Kanban Board - GearGuard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Maintenance Kanban Board</h1>
+
+<div class="row">
+    {% for state, rs in grouped.items %}
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header text-white 
+                    {% if state == 'new' %}bg-primary
+                    {% elif state == 'in_progress' %}bg-warning
+                    {% elif state == 'repaired' %}bg-success
+                    {% else %}bg-danger
+                    {% endif %}">
+                    <strong>{{ state|title }}</strong>
+                    <span class="badge bg-light text-dark float-end">{{ rs.count }}</span>
+                </div>
+
+                <div class="card-body"
+                     ondrop="drop_handler(event, '{{ state }}')"
+                     ondragover="event.preventDefault()"
+                     style="min-height: 350px;">
+
+                    {% for req in rs %}
+                        {% url 'request_detail' req.id as detail_url %}
+                        <div class="card mb-2 p-2 border draggable"
+                            draggable="true"
+                            data-id="{{ req.id }}"
+                            ondragstart="drag_handler(event)"
+                            style="cursor: grab;"
+                            onclick="window.location.href='{{ detail_url }}'">
+
+                            <strong>{{ req.subject }}</strong><br>
+                            <small class="text-muted">{{ req.equipment.name }}</small><br>
+
+                            {% if req.assigned_technician %}
+                                <span class="badge bg-info text-dark">
+                                    {{ req.assigned_technician.username|slice:":2"|upper }}
+                                </span>
+                            {% endif %}
+
+                            {% if req.scheduled_date and req.scheduled_date < today and req.state != 'repaired' %}
+                                <span class="badge bg-danger">Overdue</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+let draggedItemId = null
+
+function drag_handler(ev) {
+    draggedItemId = ev.target.dataset.id
+}
+
+function drop_handler(ev, newState) {
+    if (!draggedItemId) return
+
+    fetch(`/kanban/update/${draggedItemId}/`, {
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        body: new URLSearchParams({state: newState})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) location.reload()
+        else alert("Update failed")
+    })
+}
+</script>
+{% endblock %}

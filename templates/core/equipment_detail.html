@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>{{ equipment.name }} ({{ equipment.serial_number }})</h2>
+
+<p><strong>Department:</strong> {{ equipment.department }}</p>
+<p><strong>Assigned To:</strong> {{ equipment.assigned_to|default:"-" }}</p>
+<p><strong>Team:</strong> {{ equipment.team }}</p>
+
+<p><strong>Status:</strong>
+    {% if equipment.is_scrapped %}
+        <span class="badge bg-danger">Scrapped</span>
+    {% else %}
+        <span class="badge bg-success">Active</span>
+    {% endif %}
+</p>
+
+<a href="{% url 'create_request_for_equipment' equipment.id %}"
+   class="btn btn-primary mb-3">Create Maintenance Request</a>
+
+<hr>
+
+<h4>Open Requests</h4>
+<ul>
+    {% for req in open_requests %}
+        <li>
+            {{ req.subject }} -
+            <span class="badge bg-info">{{ req.get_state_display }}</span>
+        </li>
+    {% empty %}
+        <p>No open requests.</p>
+    {% endfor %}
+</ul>
+{% endblock %}

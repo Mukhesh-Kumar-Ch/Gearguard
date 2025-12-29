@@ -1,0 +1,97 @@
+{% extends "core/base.html" %}
+{% block title %}Request Detail - GearGuard{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4">{{ req.subject }}</h1>
+
+<div class="card shadow-sm p-4">
+
+    <p><strong>Equipment:</strong> <a href="{% url 'equipment_detail' req.equipment.id %}">
+        {{ req.equipment.name }}
+    </a></p>
+
+    <p><strong>Type:</strong>
+        {% if req.request_type == "corrective" %}
+            <span class="badge bg-warning text-dark">Corrective</span>
+        {% else %}
+            <span class="badge bg-primary">Preventive</span>
+        {% endif %}
+    </p>
+
+    <p><strong>Created:</strong> {{ req.created_at|date:"Y-m-d H:i" }}</p>
+
+    <p><strong>Scheduled:</strong> {{ req.scheduled_date|default:"—" }}</p>
+
+    <p><strong>Duration:</strong>
+        {% if req.duration_hours %}
+            {{ req.duration_hours }} hrs
+        {% else %}
+            —
+        {% endif %}
+    </p>
+
+    <p><strong>Assigned Technician:</strong>
+        {% if req.assigned_technician %}
+            {{ req.assigned_technician.username }}
+        {% else %}
+            <em>Not assigned</em>
+        {% endif %}
+    </p>
+
+    <p><strong>Status:</strong>
+        {% if req.state == "new" %}
+            <span class="badge bg-primary">New</span>
+        {% elif req.state == "in_progress" %}
+            <span class="badge bg-warning text-dark">In Progress</span>
+        {% elif req.state == "repaired" %}
+            <span class="badge bg-success">Repaired</span>
+        {% else %}
+            <span class="badge bg-danger">Scrap</span>
+        {% endif %}
+    </p>
+
+    <hr>
+
+    <!-- UPDATE FORM -->
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Assign Technician</label>
+            <select name="assigned_technician" class="form-select">
+                <option value="">Auto-select</option>
+                {% for t in technicians %}
+                    <option value="{{ t.id }}"
+                        {% if req.assigned_technician and req.assigned_technician.id == t.id %}selected{% endif %}>
+                        {{ t.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Change Status</label>
+            <select name="state" class="form-select">
+                {% for value, label in req.STATE_CHOICES %}
+                    <option value="{{ value }}"
+                        {% if value == req.state %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Duration Hours (only when repaired)</label>
+            <input type="number" step="0.1" name="duration_hours"
+                   value="{{ req.duration_hours|default_if_none:'' }}"
+                   class="form-control">
+        </div>
+
+        <button class="btn btn-primary" type="submit">Save</button>
+        <a href="{% url 'request_list' %}" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+
+{% endblock %}

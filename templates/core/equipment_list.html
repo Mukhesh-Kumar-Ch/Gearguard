@@ -1,0 +1,82 @@
+{% extends "core/base.html" %}
+{% block title %}Equipment List - GearGuard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Equipment</h1>
+    </div>
+    <div class="col-md-4">
+        <form method="get" class="d-flex" role="search">
+            <input class="form-control me-2" type="search"
+                   placeholder="Search by name, serial, department, or user..."
+                   name="q" value="{{ search_query }}" aria-label="Search">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+    </div>
+</div>
+
+{% if equipment %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>Serial Number</th>
+            <th>Department</th>
+            <th>Assigned To</th>
+            <th>Location</th>
+            <th>Open Requests</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in equipment %}
+            <tr>
+                <td>
+                    <a href="{% url 'equipment_detail' item.id %}">
+                        {{ item.name }}
+                    </a>
+                </td>
+
+                <td>{{ item.serial_number }}</td>
+                <td>{{ item.department }}</td>
+
+                <td>
+                    {% if item.assigned_to %}
+                        {{ item.assigned_to.get_full_name|default:item.assigned_to.username }}
+                    {% else %}
+                        <em>Unassigned</em>
+                    {% endif %}
+                </td>
+
+                <td>{{ item.location }}</td>
+
+                <td>
+                    {% with open_count=item.open_requests_count %}
+                        {% if open_count > 0 %}
+                            <span class="badge bg-danger">{{ open_count }}</span>
+                        {% else %}
+                            <span class="badge bg-success">0</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+
+                <td>
+                    <a href="{% url 'equipment_detail' item.id %}"
+                       class="btn btn-sm btn-outline-secondary">View</a>
+
+                    <a href="{% url 'create_request_for_equipment' item.id %}"
+                       class="btn btn-sm btn-primary">Request</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    No equipment available.
+</div>
+{% endif %}
+{% endblock %}
