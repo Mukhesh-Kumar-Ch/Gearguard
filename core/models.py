@@ -105,7 +105,7 @@ class MaintenanceRequest(models.Model):
         return team.get_least_loaded_member()
 
     def save(self, *args, **kwargs):
-        if self.equipment and self.equipment.is_scrapped:
+        if self.pk is None and self.equipment and self.equipment.is_scrapped:
             raise ValidationError("You cannot create a maintenance request for scrapped equipment.")
 
         if self.state == self.STATE_NEW and not self.assigned_technician:
